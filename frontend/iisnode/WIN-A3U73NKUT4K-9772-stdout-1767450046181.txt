@@ -1,0 +1,166 @@
+> Ready on port \\.\pipe\e89b4590-488e-44ee-8a7e-54d04331a124
+> Environment: development
+> Cookie handling configured for IIS
+ ○ Compiling / ...
+ ✓ Compiled / in 4.1s (1582 modules)
+ GET / 200 in 4663ms
+ ✓ Compiled in 659ms (745 modules)
+ GET / 200 in 44ms
+ ✓ Compiled /favicon.ico in 350ms (867 modules)
+ GET /favicon.ico 200 in 512ms
+ ○ Compiling /admin/login ...
+ ✓ Compiled /admin/login in 773ms (1612 modules)
+ ○ Compiling /admin/dashboard ...
+ ✓ Compiled /admin/dashboard in 899ms (1638 modules)
+ GET /admin/dashboard 200 in 1187ms
+ ○ Compiling /admin/users ...
+ ✓ Compiled /admin/users in 969ms (1668 modules)
+ ○ Compiling /admin/categories ...
+ ✓ Compiled /admin/categories in 1039ms (1750 modules)
+ ○ Compiling /settings/password ...
+ ✓ Compiled /settings/password in 959ms (1760 modules)
+ GET /settings/password 200 in 1243ms
+ GET /admin/categories 200 in 66ms
+ ○ Compiling /admin/analytics ...
+ ✓ Compiled /admin/analytics in 846ms (1777 modules)
+ ✓ Compiled / in 259ms (963 modules)
+ ○ Compiling /agent/login ...
+ ✓ Compiled /agent/login in 568ms (1786 modules)
+ GET / 200 in 240ms
+ ✓ Compiled /admin/login in 359ms (964 modules)
+ GET /admin/dashboard 200 in 176ms
+ ✓ Compiled /admin/users in 306ms (972 modules)
+ GET / 200 in 93ms
+ GET /admin/dashboard 200 in 37ms
+ ○ Compiling /agent/dashboard ...
+ ✓ Compiled /agent/dashboard in 1443ms (1785 modules)
+ GET /agent/dashboard 200 in 1753ms
+ GET / 200 in 59ms
+ GET / 200 in 27ms
+ ✓ Compiled /favicon.ico in 303ms (987 modules)
+ GET /favicon.ico 200 in 442ms
+ ○ Compiling /customer/check-in ...
+ ✓ Compiled /customer/check-in in 677ms (1829 modules)
+ GET /favicon.ico 200 in 22ms
+ ○ Compiling /customer/token/[tokenNumber] ...
+ ✓ Compiled /customer/token/[tokenNumber] in 835ms (1824 modules)
+ GET /favicon.ico 200 in 28ms
+ ○ Compiling /status ...
+ ✓ Compiled /status in 696ms (1833 modules)
+ GET /favicon.ico 200 in 18ms
+ ✓ Compiled /agent/login in 276ms (981 modules)
+ GET /agent/login 200 in 562ms
+ GET /agent/dashboard 200 in 83ms
+ ✓ Compiled /admin/login in 263ms (985 modules)
+ ✓ Compiled /admin/dashboard in 273ms (993 modules)
+ GET /admin/dashboard 200 in 522ms
+ ✓ Compiled /admin/users in 265ms (1005 modules)
+ GET /agent/dashboard 200 in 126ms
+ GET /favicon.ico 200 in 32ms
+ GET /favicon.ico 200 in 11ms
+ GET /favicon.ico 200 in 10ms
+ GET /favicon.ico 200 in 9ms
+ GET /admin/dashboard 200 in 43ms
+ GET /favicon.ico 200 in 13ms
+ ○ Compiling /admin/categories ...
+ ✓ Compiled /admin/categories in 832ms (1013 modules)
+ GET /favicon.ico 200 in 21ms
+ GET /favicon.ico 200 in 11ms
+ GET /favicon.ico 200 in 8ms
+ GET /agent/dashboard 200 in 259ms
+ GET /favicon.ico 200 in 8ms
+ GET /favicon.ico 200 in 9ms
+ GET /favicon.ico 200 in 8ms
+ GET /agent/dashboard 200 in 25ms
+ GET /favicon.ico 200 in 11ms
+ GET /favicon.ico 200 in 9ms
+ GET / 200 in 64ms
+ GET / 200 in 56ms
+ GET /favicon.ico 200 in 9ms
+ GET / 200 in 71ms
+ GET / 200 in 40ms
+ GET / 200 in 47ms
+ GET / 200 in 25ms
+ GET / 200 in 33ms
+ GET / 200 in 41ms
+ GET / 200 in 47ms
+ GET /favicon.ico 200 in 8ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1182ms (1817 modules)
+ GET /login 404 in 1331ms
+ GET / 200 in 73ms
+ GET / 200 in 51ms
+ GET /.well-known/security.txt 404 in 58ms
+ GET / 200 in 68ms
+ GET / 200 in 64ms
+ GET /favicon.ico 200 in 24ms
+ GET /sitemap.xml 404 in 46ms
+ GET / 200 in 35ms
+ GET / 200 in 45ms
+ GET / 200 in 85ms
+ GET / 200 in 64ms
+ GET / 200 in 30ms
+ GET / 200 in 45ms
+ GET / 200 in 26ms
+ ✓ Compiled /admin/login in 369ms (949 modules)
+ ✓ Compiled /admin/dashboard in 280ms (957 modules)
+ GET /admin/dashboard 200 in 575ms
+ ✓ Compiled /admin/users in 270ms (965 modules)
+ ○ Compiling /admin/categories ...
+ ✓ Compiled /admin/categories in 762ms (961 modules)
+ ○ Compiling /admin/queues ...
+ ✓ Compiled /admin/queues in 1019ms (1804 modules)
+ ○ Compiling /admin/analytics ...
+ ✓ Compiled /admin/analytics in 560ms (968 modules)
+ ✓ Compiled /agent/login in 377ms (967 modules)
+ ✓ Compiled /agent/dashboard in 224ms (965 modules)
+ GET /agent/dashboard 200 in 529ms
+ GET /agent/login 200 in 38ms
+ ✓ Compiled /customer/check-in in 507ms (964 modules)
+ ✓ Compiled /customer/token/[tokenNumber] in 345ms (953 modules)
+ ✓ Compiled /status in 346ms (959 modules)
+ GET /status 200 in 234ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 717ms (974 modules)
+ GET /favicon.ico 200 in 895ms
+ GET / 200 in 126ms
+ ✓ Compiled /agent/login in 246ms (981 modules)
+ GET /agent/dashboard 200 in 124ms
+ GET /agent/login 200 in 35ms
+ ✓ Compiled /admin/login in 477ms (944 modules)
+ ✓ Compiled /admin/dashboard in 245ms (952 modules)
+ GET /admin/dashboard 200 in 496ms
+ ✓ Compiled /admin/categories in 473ms (957 modules)
+ ✓ Compiled /admin/queues in 449ms (959 modules)
+ ✓ Compiled /admin/analytics in 487ms (967 modules)
+ GET / 200 in 220ms
+ GET / 200 in 39ms
+ ✓ Compiled /agent/login in 340ms (967 modules)
+ ✓ Compiled /agent/dashboard in 253ms (972 modules)
+ GET /agent/dashboard 200 in 519ms
+ GET / 200 in 54ms
+ GET /agent/dashboard 200 in 28ms
+ ✓ Compiled /admin/login in 373ms (964 modules)
+ ✓ Compiled /admin/dashboard in 248ms (969 modules)
+ GET /admin/dashboard 200 in 391ms
+ GET / 200 in 35ms
+ ○ Compiling /customer/check-in ...
+ ✓ Compiled /customer/check-in in 733ms (954 modules)
+ GET /admin/dashboard 200 in 75ms
+ ✓ Compiled /admin/users in 481ms (964 modules)
+ ○ Compiling /settings/account ...
+ ✓ Compiled /settings/account in 1350ms (1741 modules)
+ GET /settings/account 200 in 1637ms
+ GET /admin/dashboard 200 in 42ms
+ ✓ Compiled /agent/login in 353ms (895 modules)
+ ✓ Compiled /agent/dashboard in 455ms (973 modules)
+ GET /agent/dashboard 200 in 719ms
+ ✓ Compiled /admin/login in 318ms (961 modules)
+ ✓ Compiled /admin/dashboard in 237ms (967 modules)
+ GET /admin/dashboard 200 in 388ms
+ ✓ Compiled /admin/categories in 400ms (957 modules)
+ GET /admin/dashboard 200 in 80ms
+ ✓ Compiled /admin/queues in 427ms (959 modules)
+ GET / 200 in 87ms
+ ✓ Compiled /favicon.ico in 409ms (983 modules)
+ GET /favicon.ico 200 in 487ms

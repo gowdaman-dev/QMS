@@ -1,0 +1,8 @@
+> Ready on port \\.\pipe\b854d1d8-0237-42a6-aa2d-e2a6f1319455
+> Environment: development
+> Cookie handling configured for IIS
+ ○ Compiling / ...
+ ✓ Compiled / in 5.4s (1585 modules)
+ GET / 200 in 5812ms
+ ✓ Compiled in 856ms (1571 modules)
+ GET /index.htm 404 in 6433ms

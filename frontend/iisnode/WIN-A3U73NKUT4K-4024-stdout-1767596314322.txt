@@ -1,0 +1,49 @@
+> Ready on port \\.\pipe\c97a8892-c8bd-4c8a-840b-8615cf916f4e
+> Environment: development
+> Cookie handling configured for IIS
+ ○ Compiling / ...
+ ✓ Compiled / in 4.5s (1582 modules)
+ GET / 200 in 4955ms
+ ✓ Compiled in 630ms (745 modules)
+ GET / 200 in 43ms
+ ✓ Compiled /favicon.ico in 432ms (867 modules)
+ GET /favicon.ico 200 in 542ms
+ GET / 200 in 252ms
+ GET /favicon.ico 200 in 12ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 616ms (1601 modules)
+ GET /login 404 in 812ms
+ GET / 200 in 75ms
+ GET /favicon.ico 200 in 30ms
+ GET /sitemap.xml 404 in 64ms
+ GET / 200 in 43ms
+ GET / 200 in 40ms
+ GET / 200 in 41ms
+ GET / 200 in 47ms
+ GET / 200 in 54ms
+ GET /favicon.ico 200 in 9ms
+ GET /security.txt 404 in 42ms
+ GET / 200 in 52ms
+ GET / 200 in 52ms
+ GET / 200 in 53ms
+ GET / 200 in 33ms
+ GET / 200 in 43ms
+ ○ Compiling /agent/login ...
+ ✓ Compiled /agent/login in 822ms (1582 modules)
+ ○ Compiling /agent/dashboard ...
+ ✓ Compiled /agent/dashboard in 932ms (1716 modules)
+ GET /agent/dashboard 200 in 1236ms
+ GET / 200 in 67ms
+ GET / 200 in 71ms
+ GET / 200 in 35ms
+ GET / 200 in 41ms
+ GET / 200 in 51ms
+ GET / 200 in 31ms
+ GET / 200 in 80ms
+ GET / 200 in 42ms
+ GET / 200 in 47ms
+ GET / 200 in 31ms
+ GET / 200 in 73ms
+ GET / 200 in 65ms
+ GET / 200 in 53ms
+ GET / 200 in 44ms

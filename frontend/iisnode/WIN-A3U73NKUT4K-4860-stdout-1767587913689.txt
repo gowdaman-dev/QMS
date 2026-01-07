@@ -1,0 +1,11 @@
+> Ready on port \\.\pipe\c445a3df-dbd2-4371-9268-df4e358c321b
+> Environment: development
+> Cookie handling configured for IIS
+ ○ Compiling / ...
+ ✓ Compiled / in 4.1s (1582 modules)
+ ✓ Compiled in 408ms (745 modules)
+ GET / 200 in 225ms
+ GET / 200 in 50ms
+ GET / 200 in 34ms
+ ✓ Compiled /favicon.ico in 155ms (53 modules)
+ GET /favicon.ico 200 in 218ms
