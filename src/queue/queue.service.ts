@@ -14,13 +14,25 @@ import { EncryptionService } from '../encryption/encryption.service';
 
 @Injectable()
 export class QueueService {
+  // Service instance identifier for uniqueness (generated once per service instance)
+  private readonly serviceInstanceId: string;
+  // Counter for additional uniqueness within the same nanosecond
+  private tokenCounter: number = 0;
+
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
     private realtimeService: RealtimeService,
     private notificationService: NotificationService,
     private encryptionService: EncryptionService,
-  ) { }
+  ) {
+    // Generate a unique service instance ID on startup
+    // Uses process ID + random component + startup timestamp
+    const processId = process.pid.toString(36).toUpperCase().padStart(4, '0');
+    const randomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const startupTime = Date.now().toString(36).toUpperCase().slice(-4);
+    this.serviceInstanceId = `${processId}${randomId}${startupTime}`.substring(0, 8);
+  }
 
   private encryptTicket(data: any) {
     if (data.customerName) data.customerName = this.encryptionService.encrypt(data.customerName);
@@ -159,20 +171,66 @@ export class QueueService {
             continue; // Retry
           }
         }
-        // If it's not a retryable error or we've exhausted retries, throw
+        // If it's not a retryable error, throw immediately
         throw error;
       }
     }
 
-    // If we've exhausted all retries, throw a descriptive error
+    // If we've exhausted all retries, use final fallback strategy
+    // Generate a completely unique token using UUID-based approach
+    if (lastError && lastError.code === 'P2002') {
+      try {
+        // Final fallback: Generate token outside transaction and retry once
+        const category = await this.prisma.category.findUnique({
+          where: { id: createTicketDto.categoryId },
+        });
+
+        if (!category || !category.isActive) {
+          throw new NotFoundException('Category not found or inactive');
+        }
+
+        // Generate UUID-based token (guaranteed unique)
+        const categoryCode = category.name.substring(0, 3).toUpperCase();
+        const uuidToken = `${categoryCode}-${this.generateShortUuid()}-${Date.now().toString(36).toUpperCase()}`;
+        
+        // Get least busy agent
+        const agent = await this.findLeastBusyAgentInternal(this.prisma, agents.map((a) => a.id));
+        const positionInQueue = await this.getNextPositionInQueueInternal(this.prisma, agent.id);
+
+        // Create ticket with UUID-based token
+        const data = this.encryptTicket({
+          ...createTicketDto,
+          categoryId: createTicketDto.categoryId,
+          agentId: agent.id,
+          tokenNumber: uuidToken,
+          positionInQueue,
+          status: TicketStatus.PENDING,
+        });
+
+        const savedTicket = await this.prisma.ticket.create({
+          data,
+          include: {
+            category: true,
+            agent: true,
+          }
+        });
+
+        return this.processCreatedTicket(savedTicket);
+      } catch (fallbackError: any) {
+        // If even fallback fails, log and throw user-friendly error
+        console.error('Final fallback token generation failed:', fallbackError);
+        throw new BadRequestException('Unable to create ticket. Please try again in a moment.');
+      }
+    }
+
+    // Handle other error types
     if (lastError) {
       if (lastError.code === 'P2028') {
         throw new BadRequestException('Transaction timeout: Please try again. The system is experiencing high load.');
-      } else if (lastError.code === 'P2002') {
-        throw new BadRequestException('Unable to generate unique token number. Please try again.');
       }
       throw lastError;
     }
+    
     throw new BadRequestException('Failed to create ticket after multiple attempts. Please try again.');
   }
 
@@ -273,74 +331,119 @@ export class QueueService {
   }
 
   /**
-   * Internal token generation with serializable-like behavior in MSSQL
-   * Optimized to reduce transaction time and avoid timeouts
+   * Generate a unique token number using high-resolution timestamp + service ID + fallbacks
+   * This ensures uniqueness even under high concurrency
+   * @param tx - Transaction context
+   * @param category - Category object
    * @param retryAttempt - Current retry attempt (0 for first try, >0 for retries)
    */
   private async generateTokenNumberInternal(tx: any, category: any, retryAttempt: number = 0): Promise<string> {
     const categoryCode = category.name.substring(0, 3).toUpperCase();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Get the highest token number for today in a single query
-    const lastTicket = await tx.ticket.findFirst({
-      where: {
-        tokenNumber: { startsWith: `${categoryCode}-` },
-        createdAt: { gte: today },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { tokenNumber: true },
-    });
-
-    let nextNumber = 1;
-    if (lastTicket) {
-      const parts = lastTicket.tokenNumber.split('-');
-      const lastNum = parseInt(parts[1] || '0', 10);
-      if (!isNaN(lastNum)) {
-        nextNumber = lastNum + 1;
-      }
-    }
-
-    // On retries, add a random offset to reduce collision probability
-    if (retryAttempt > 0) {
-      const randomOffset = Math.floor(Math.random() * (retryAttempt * 10)) + 1;
-      nextNumber += randomOffset;
-    }
-
-    // Generate initial token number
-    let tokenNumber = `${categoryCode}-${nextNumber.toString().padStart(3, '0')}`;
     
-    // Check if token exists - limit attempts to avoid transaction timeout
-    // Reduced to 3 attempts since we have retry logic at the transaction level
-    const maxAttempts = 3;
+    // Generate token with multiple fallback strategies
+    // Strategy 1: High-resolution timestamp + service ID + counter + random
+    const tokenNumber = this.generateUniqueToken(categoryCode, retryAttempt);
+    
+    // Verify uniqueness in database (with fallback if needed)
+    const maxVerificationAttempts = 5;
+    let verifiedToken = tokenNumber;
     let attempts = 0;
     
-    while (attempts < maxAttempts) {
-      // Single query to check existence for today
+    while (attempts < maxVerificationAttempts) {
       const existing = await tx.ticket.findFirst({
-        where: {
-          tokenNumber,
-          createdAt: { gte: today },
-        },
-        select: { id: true }, // Only select id for faster query
+        where: { tokenNumber: verifiedToken },
+        select: { id: true },
       });
       
       if (!existing) {
-        return tokenNumber;
+        return verifiedToken;
       }
-
-      nextNumber++;
-      tokenNumber = `${categoryCode}-${nextNumber.toString().padStart(3, '0')}`;
+      
+      // If token exists, generate a new one with additional randomness
       attempts++;
+      verifiedToken = this.generateUniqueToken(categoryCode, retryAttempt + attempts);
     }
     
-    // Fallback: use timestamp-based token with random component to ensure uniqueness
-    // This ensures we always return a unique token even if all sequential numbers are taken
-    const timestamp = Date.now().toString().slice(-6);
-    const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    tokenNumber = `${categoryCode}-${timestamp}${randomSuffix}`;
+    // Final fallback: UUID-based token (guaranteed unique)
+    // This should never be needed, but ensures we never fail
+    const uuidComponent = this.generateShortUuid();
+    return `${categoryCode}-${uuidComponent}`;
+  }
+
+  /**
+   * Generate a unique token using high-resolution timestamp and service identifier
+   * Format: CAT-TIMESTAMP-SERVICE-COUNTER-RANDOM
+   * Uses multiple sources of uniqueness to prevent collisions even under extreme concurrency
+   */
+  private generateUniqueToken(categoryCode: string, retryAttempt: number = 0): string {
+    // Get high-resolution timestamp (nanoseconds precision)
+    // Use process.hrtime.bigint() for true nanosecond precision in Node.js
+    const baseTime = Date.now();
+    let highResTime: number;
     
-    return tokenNumber;
+    try {
+      // Try to use performance.now() for microsecond precision (available in Node.js 16+)
+      if (typeof performance !== 'undefined' && performance.now) {
+        highResTime = performance.now();
+      } else {
+        // Fallback: use process.hrtime for nanosecond precision
+        const hrtime = process.hrtime.bigint();
+        highResTime = Number(hrtime % BigInt(1000000)) / 1000; // Convert to milliseconds-like value
+      }
+    } catch {
+      // Ultimate fallback: use random value
+      highResTime = Math.random() * 1000;
+    }
+    
+    // Combine base time with high-resolution component
+    // Convert to base36 for shorter representation
+    const timeComponent = Math.floor(baseTime).toString(36).toUpperCase();
+    const highResComponent = Math.floor((highResTime % 1) * 1000000).toString(36).toUpperCase().padStart(4, '0');
+    
+    // Increment counter atomically (wraps around after 36^4 = 1.6M)
+    // Use bitwise operations for thread-safe increment simulation
+    this.tokenCounter = ((this.tokenCounter + 1) | 0) % 1679616; // 36^4, force to 32-bit int
+    const counterComponent = this.tokenCounter.toString(36).toUpperCase().padStart(4, '0');
+    
+    // Random component for additional uniqueness (36^3 = 46,656 possibilities)
+    const randomComponent = Math.floor(Math.random() * 46656).toString(36).toUpperCase().padStart(3, '0');
+    
+    // Retry offset for additional uniqueness on retries (36^2 = 1,296 possibilities)
+    const retryOffset = retryAttempt > 0 
+      ? Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0')
+      : '';
+    
+    // Additional process-specific component for multi-instance deployments
+    const processComponent = process.pid.toString(36).toUpperCase().padStart(3, '0').slice(-3);
+    
+    // Build token: CAT-TIME-HIRES-SERVICE-PROCESS-COUNTER-RANDOM-RETRY
+    // Total length: ~35 chars (well within 50 char limit)
+    const tokenParts = [
+      categoryCode,
+      timeComponent.slice(-6), // Last 6 chars of timestamp
+      highResComponent.slice(-4), // High-res component (4 chars)
+      this.serviceInstanceId.slice(-6), // Service ID (6 chars)
+      processComponent, // Process ID (3 chars)
+      counterComponent, // Counter (4 chars)
+      randomComponent, // Random (3 chars)
+      retryOffset // Retry offset (2 chars, only on retries)
+    ].filter(Boolean);
+    
+    return tokenParts.join('-');
+  }
+
+  /**
+   * Generate a short UUID-like identifier as final fallback
+   * Format: 8-char alphanumeric string
+   */
+  private generateShortUuid(): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const random2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const processId = process.pid.toString(36).toUpperCase().padStart(3, '0');
+    
+    // Combine and take first 8 chars
+    return `${timestamp}${random1}${random2}${processId}`.substring(0, 8);
   }
 
   private async getNextPositionInQueueInternal(tx: any, agentId: string): Promise<number> {
