@@ -17,7 +17,7 @@ class EncryptionService {
 
   constructor() {
     const envKey = process.env.ENCRYPTION_KEY;
-    
+
     if (!envKey) {
       console.warn('ENCRYPTION_KEY not set. Using default key (NOT SECURE FOR PRODUCTION).');
       this.key = crypto.scryptSync('default-key-change-in-production', 'salt', this.keyLength);
@@ -32,13 +32,13 @@ class EncryptionService {
     try {
       const iv = crypto.randomBytes(this.ivLength);
       const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
-      
+
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       const tag = cipher.getAuthTag();
       const combined = iv.toString('hex') + ':' + tag.toString('hex') + ':' + encrypted;
-      
+
       return Buffer.from(combined, 'utf8').toString('base64');
     } catch (error) {
       console.error('Encryption failed:', error);
@@ -132,7 +132,7 @@ async function createSimulatorData() {
     // Step 1: Create 20 Agents
     console.log('📝 Creating 20 agents...');
     const hashedPassword = await bcrypt.hash('agent123', 10);
-    
+
     for (let i = 0; i < 20; i++) {
       const firstName = firstNames[i];
       const lastName = lastNames[i];
@@ -196,7 +196,7 @@ async function createSimulatorData() {
     console.log('\n🔗 Assigning agents to services...');
     // Each agent handles 1-3 categories
     // Each category has 2-5 agents
-    
+
     for (const categoryId of createdData.categoryIds) {
       const numAgents = getRandomInt(2, 5);
       const shuffledAgents = [...createdData.agentIds].sort(() => Math.random() - 0.5);
@@ -228,7 +228,7 @@ async function createSimulatorData() {
 
     // Step 4: Create Tickets
     const today = new Date();
-    
+
     // Status distribution: 40% completed, 20% pending, 15% serving, 10% called, 15% hold
     const statusWeights = [
       { status: 'completed', weight: 40 },
@@ -245,19 +245,19 @@ async function createSimulatorData() {
     async function generateUniqueTokenNumber(category: any, ticketDate: Date): Promise<string> {
       const categoryCode = category.name.substring(0, 3).toUpperCase().replace(/\s/g, '');
       const ticketDateStr = ticketDate.toISOString().split('T')[0];
-      
+
       // Initialize counters if needed
       if (!tokenCounters.has(categoryCode)) {
         tokenCounters.set(categoryCode, new Map());
       }
       const dayCounters = tokenCounters.get(categoryCode)!;
-      
+
       // Get the last ticket for this category on this day from database
       const dayStart = new Date(ticketDate);
       dayStart.setHours(0, 0, 0, 0);
       const dayEnd = new Date(ticketDate);
       dayEnd.setHours(23, 59, 59, 999);
-      
+
       const lastTicket = await prisma.ticket.findFirst({
         where: {
           tokenNumber: { startsWith: `${categoryCode}-` },
@@ -300,7 +300,7 @@ async function createSimulatorData() {
         tokenNumber = `${categoryCode}-${String(counter).padStart(3, '0')}`;
         attempts++;
       }
-      
+
       throw new Error(`Failed to generate unique token number for ${category.name} on ${ticketDateStr}`);
     }
 
@@ -318,7 +318,7 @@ async function createSimulatorData() {
         // Random date within the specified range
         const ticketDate = getRandomDate(startDate, endDate);
         const ticketDateStr = ticketDate.toISOString().split('T')[0];
-        
+
         // Select random category
         const categoryId = getRandomElement(createdData.categoryIds);
         const category = await prisma.category.findUnique({ where: { id: categoryId } });
@@ -422,7 +422,7 @@ async function createSimulatorData() {
 
           createdData.ticketIds.push(ticket.id);
           createdCount++;
-          
+
           const progressInterval = count >= 500 ? 50 : 10;
           if ((i + 1) % progressInterval === 0) {
             console.log(`  ✓ Created ${i + 1}/${count} tickets...`);
@@ -437,20 +437,18 @@ async function createSimulatorData() {
       return createdCount;
     }
 
-    // Create 100 tickets across last 30 days
-    const startDate30Days = new Date(today);
-    startDate30Days.setDate(startDate30Days.getDate() - 30);
-    await createTickets(100, startDate30Days, today, 'across last 30 days');
-
     // Create 500 tickets for this week (last 7 days)
     const weekStartDate = new Date(today);
     weekStartDate.setDate(weekStartDate.getDate() - 7);
     await createTickets(500, weekStartDate, today, 'for this week (last 7 days)');
 
-    // Create 500 tickets for random dates (last 90 days)
+    // Create 500 tickets for random dates (less than current date)
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(23, 59, 59, 999); // End of yesterday
     const randomStartDate = new Date(today);
     randomStartDate.setDate(randomStartDate.getDate() - 90);
-    await createTickets(500, randomStartDate, today, 'across random dates (last 90 days)');
+    await createTickets(500, randomStartDate, yesterday, 'across random dates (less than current date)');
 
     // Step 5: Save metadata for cleanup
     const metadata = {
@@ -462,7 +460,7 @@ async function createSimulatorData() {
     await prisma.$executeRaw`
       IF OBJECT_ID('tempdb..##simulator_metadata', 'U') IS NOT NULL
         DROP TABLE ##simulator_metadata;
-    `.catch(() => {});
+    `.catch(() => { });
 
     // Store metadata in a way we can retrieve it
     // We'll use a JSON file instead since SQL Server temp tables might not persist
@@ -475,10 +473,9 @@ async function createSimulatorData() {
     console.log(`   - Categories: ${createdData.categoryIds.length}`);
     console.log(`   - Agent-Category Assignments: ${createdData.agentCategoryIds.length}`);
     console.log(`   - Tickets: ${createdData.ticketIds.length} total`);
-    console.log(`     • 100 tickets across last 30 days`);
     console.log(`     • 500 tickets for this week (last 7 days)`);
-    console.log(`     • 500 tickets across random dates (last 90 days)`);
-    console.log(`   - Date Range: ${randomStartDate.toLocaleDateString()} to ${today.toLocaleDateString()}`);
+    console.log(`     • 500 tickets across random dates (less than current date)`);
+    console.log(`   - Date Range: ${randomStartDate.toLocaleDateString()} to ${yesterday.toLocaleDateString()}`);
     console.log('\n💾 Metadata saved to simulator-metadata.json for cleanup');
 
   } catch (error) {

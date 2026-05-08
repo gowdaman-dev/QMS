@@ -1,0 +1,4 @@
+Starting Next.js server...
+Directory: D:\QMS\frontend
+Port: \\.\pipe\dfd2d624-3900-4365-ae45-e24b755c7278
+✓ Next.js server running on port \\.\pipe\dfd2d624-3900-4365-ae45-e24b755c7278
